@@ -1,0 +1,98 @@
+-- se crea el schema--
+create schema ksanchez
+
+--se crea la tabla liga--
+CREATE TABLE ksanchez.liga (
+    id_liga SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    pais VARCHAR(100),
+    estado BOOLEAN DEFAULT TRUE,
+    id_usuario_creacion INT,
+    id_usuario_modificacion INT,
+    f_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_modificacion TIMESTAMP
+);
+
+--se crea la tabla equipo--
+CREATE TABLE ksanchez.equipo (
+    id_equipo SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    ciudad VARCHAR(100),
+    fundacion DATE,
+    id_liga INT NOT NULL,
+    estado BOOLEAN DEFAULT TRUE,
+    id_usuario_creacion INT,
+    id_usuario_modificacion INT,
+    f_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_modificacion TIMESTAMP,
+    FOREIGN KEY (id_liga)
+        REFERENCES ksanchez.liga(id_liga)
+);
+
+-- se crea la tabla jugador--
+CREATE TABLE ksanchez.jugador (
+    id_jugador SERIAL PRIMARY KEY,
+    nombres VARCHAR(100) NOT NULL,
+    apellidos VARCHAR(100) NOT NULL,
+    posicion VARCHAR(50),
+    nacionalidad VARCHAR(50),
+    id_equipo INT NOT NULL,
+    estado BOOLEAN DEFAULT TRUE,
+    id_usuario_creacion INT,
+    id_usuario_modificacion INT,
+    f_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_modificacion TIMESTAMP,
+    FOREIGN KEY (id_equipo)
+        REFERENCES ksanchez.equipo(id_equipo)
+);
+
+-- se crea la tabla estadio--
+CREATE TABLE ksanchez.estadio (
+    id_estadio SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    capacidad INT,
+    ubicacion TEXT,
+    estado BOOLEAN DEFAULT TRUE,
+    id_usuario_creacion INT,
+    id_usuario_modificacion INT,
+    f_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_modificacion TIMESTAMP
+);
+
+-- se crea la tabla partido--
+CREATE TABLE ksanchez.partido (
+    id_partido SERIAL PRIMARY KEY,
+    fecha DATE NOT NULL,
+    hora TIME NOT NULL,
+    id_equipo_local INT NOT NULL,
+    id_equipo_visitante INT NOT NULL,
+    id_estadio INT NOT NULL,
+    estado_partido VARCHAR(50) NOT NULL,
+    estado BOOLEAN DEFAULT TRUE,
+    id_usuario_creacion INT,
+    id_usuario_modificacion INT,
+    f_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_modificacion TIMESTAMP,
+    FOREIGN KEY (id_equipo_local)
+        REFERENCES ksanchez.equipo(id_equipo),
+    FOREIGN KEY (id_equipo_visitante)
+        REFERENCES ksanchez.equipo(id_equipo),
+    FOREIGN KEY (id_estadio)
+        REFERENCES ksanchez.estadio(id_estadio)
+);
+
+-- se crea la tabla resultado--
+CREATE TABLE ksanchez.resultado (
+    id_resultado SERIAL PRIMARY KEY,
+    goles_local INT NOT NULL,
+    goles_visitante INT NOT NULL,
+    observaciones TEXT,
+    id_partido INT NOT NULL UNIQUE,
+    estado BOOLEAN DEFAULT TRUE,
+    id_usuario_creacion INT,
+    id_usuario_modificacion INT,
+    f_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    f_modificacion TIMESTAMP,
+    FOREIGN KEY (id_partido)
+        REFERENCES ksanchez.partido(id_partido)
+);

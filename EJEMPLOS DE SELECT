@@ -1,0 +1,64 @@
+--Ver jugadores activos--
+SELECT *
+FROM ksanchez.jugador
+WHERE estado = TRUE;
+
+
+--Ver cada equipo con su liga--
+SELECT 
+    e.id_equipo,
+    e.nombre AS equipo,
+    e.ciudad,
+    l.nombre AS liga
+FROM ksanchez.equipo e
+JOIN ksanchez.liga l
+    ON e.id_liga = l.id_liga;
+
+
+--Ver resultados de un equipo especifico--
+SELECT 
+    e.nombre AS equipo,
+    r.goles_local,
+    r.goles_visitante,
+    r.observaciones,
+    p.fecha
+FROM ksanchez.resultado r
+JOIN ksanchez.partido p ON r.id_partido = p.id_partido
+JOIN ksanchez.equipo e ON p.id_equipo_local = e.id_equipo
+WHERE e.id_equipo = 1;
+
+
+--Partidos programados por fecha--
+SELECT *
+FROM ksanchez.partido
+WHERE estado_partido = 'Programado'
+ORDER BY fecha, hora;
+
+
+--ver observaciones de resultados mas frecuentes--
+SELECT 
+    observaciones,
+    COUNT(*) AS cantidad
+FROM ksanchez.resultado
+GROUP BY observaciones
+ORDER BY cantidad DESC;
+
+
+--ver ultimos 5 partidos registrados--
+SELECT *
+FROM ksanchez.partido
+ORDER BY f_creacion DESC
+LIMIT 5;
+
+
+--ver resultados por liga--
+SELECT
+    l.nombre AS liga,
+    r.observaciones,
+    COUNT(*) AS cantidad
+FROM ksanchez.resultado r
+JOIN ksanchez.partido p ON r.id_partido = p.id_partido
+JOIN ksanchez.equipo e ON p.id_equipo_local = e.id_equipo
+JOIN ksanchez.liga l ON e.id_liga = l.id_liga
+GROUP BY l.nombre, r.observaciones
+ORDER BY l.nombre;

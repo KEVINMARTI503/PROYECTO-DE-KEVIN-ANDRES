@@ -1,0 +1,166 @@
+--Insets de ligas--
+INSERT INTO ksanchez.liga (nombre, pais) VALUES
+('La Liga', 'España'),
+('Premier League', 'Inglaterra'),
+('Serie A', 'Italia'),
+('Bundesliga', 'Alemania'),
+('Ligue 1', 'Francia');
+
+--Insets de estadios--
+INSERT INTO ksanchez.estadio (nombre, capacidad, ubicacion) VALUES
+('Santiago Bernabéu', 81044, 'Madrid'),
+('Camp Nou', 99354, 'Barcelona'),
+('Old Trafford', 74879, 'Manchester'),
+('Anfield', 53394, 'Liverpool'),
+('Allianz Arena', 75000, 'Múnich');
+
+--Insets de equipos--
+INSERT INTO ksanchez.equipo (nombre, ciudad, fundacion, id_liga) VALUES
+('Real Madrid', 'Madrid', '1902-03-06', 1),
+('FC Barcelona', 'Barcelona', '1899-11-29', 1),
+('Manchester United', 'Manchester', '1878-01-01', 2),
+('Liverpool FC', 'Liverpool', '1892-06-03', 2),
+('Juventus', 'Turín', '1897-11-01', 3),
+('AC Milan', 'Milán', '1899-12-16', 3),
+('Bayern Múnich', 'Múnich', '1900-02-27', 4),
+('Borussia Dortmund', 'Dortmund', '1909-12-19', 4),
+('PSG', 'París', '1970-08-12', 5),
+('Olympique de Lyon', 'Lyon', '1950-08-03', 5);
+
+--Insets de jugadores activos--
+INSERT INTO ksanchez.jugador (nombres, apellidos, posicion, nacionalidad, id_equipo) VALUES
+('Kylian','Mbappé','Delantero','Francia',1),
+('Vinícius','Júnior','Delantero','Brasil',1),
+('Robert','Lewandowski','Delantero','Polonia',2),
+('Lamine','Yamal','Delantero','España',2),
+('Marcus','Rashford','Delantero','Inglaterra',3),
+('Bruno','Fernandes','Centrocampista','Portugal',3),
+('Mohamed','Salah','Delantero','Egipto',4),
+('Virgil','van Dijk','Defensa','Países Bajos',4),
+('Dusan','Vlahovic','Delantero','Serbia',5),
+('Federico','Chiesa','Delantero','Italia',5),
+('Rafael','Leão','Delantero','Portugal',6),
+('Theo','Hernández','Defensa','Francia',6),
+('Harry','Kane','Delantero','Inglaterra',7),
+('Jamal','Musiala','Centrocampista','Alemania',7),
+('Julian','Brandt','Centrocampista','Alemania',8),
+('Gregor','Kobel','Portero','Suiza',8),
+('Ousmane','Dembélé','Delantero','Francia',9),
+('Marquinhos','','Defensa','Brasil',9),
+('Alexandre','Lacazette','Delantero','Francia',10),
+('Corentin','Tolisso','Centrocampista','Francia',10),
+('Jude','Bellingham','Centrocampista','Inglaterra',1),
+('Pedri','González','Centrocampista','España',2),
+('Casemiro','','Centrocampista','Brasil',3),
+('Alisson','Becker','Portero','Brasil',4),
+('Manuel','Locatelli','Centrocampista','Italia',5),
+('Mike','Maignan','Portero','Francia',6),
+('Leroy','Sané','Delantero','Alemania',7),
+('Emre','Can','Centrocampista','Alemania',8),
+('Achraf','Hakimi','Defensa','Marruecos',9),
+('Anthony','Lopes','Portero','Portugal',10),
+('Luka','Modric','Centrocampista','Croacia',1),
+('Gavi','','Centrocampista','España',2),
+('Lisandro','Martínez','Defensa','Argentina',3),
+('Darwin','Núñez','Delantero','Uruguay',4),
+('Gleison','Bremer','Defensa','Brasil',5),
+('Fikayo','Tomori','Defensa','Inglaterra',6),
+('Joshua','Kimmich','Centrocampista','Alemania',7),
+('Nico','Schlotterbeck','Defensa','Alemania',8),
+('Vitinha','','Centrocampista','Portugal',9),
+('Maxence','Caqueret','Centrocampista','Francia',10);
+
+--Insets de jugadores inactivos--
+INSERT INTO ksanchez.jugador
+(nombres, apellidos, posicion, nacionalidad, id_equipo, estado)
+VALUES
+('Zinedine','Zidane','Centrocampista','Francia',1, FALSE),
+('Ronaldinho','Gaucho','Delantero','Brasil',2, FALSE),
+('Ryan','Giggs','Centrocampista','Gales',3, FALSE),
+('Steven','Gerrard','Centrocampista','Inglaterra',4, FALSE),
+('Alessandro','Del Piero','Delantero','Italia',5, FALSE),
+('Paolo','Maldini','Defensa','Italia',6, FALSE),
+('Oliver','Kahn','Portero','Alemania',7, FALSE),
+('Marco','Reus','Delantero','Alemania',8, FALSE),
+('Pauleta','','Delantero','Portugal',9, FALSE),
+('Juninho','Pernambucano','Centrocampista','Brasil',10, FALSE);
+
+--inserts de partidos--
+INSERT INTO ksanchez.partido
+(fecha, hora, id_equipo_local, id_equipo_visitante, id_estadio, estado_partido)
+VALUES
+('2026-01-16','20:00',1,4,1,'Programado'),
+('2026-01-16','20:30',2,5,2,'Programado'),
+('2026-01-16','21:00',3,6,3,'Programado'),
+('2026-01-16','21:30',4,7,4,'Programado'),
+('2026-01-16','22:00',5,8,5,'Programado'),
+('2026-01-17','20:00',6,9,5,'Programado'),
+('2026-01-17','20:30',7,10,5,'Programado'),
+('2026-01-17','21:00',8,1,5,'Programado'),
+('2026-01-17','21:30',9,2,1,'Programado'),
+('2026-01-17','22:00',10,3,2,'Programado');
+
+
+DELETE FROM ksanchez.resultado;
+
+--inserts de resultados--
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 2, 1, 'Partido muy disputado', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 0;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 0, 0, 'Empate sin goles', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 1;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 3, 2, 'Remontada histórica', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 2;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 1, 0, 'Gol de último minuto', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 3;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 4, 1, 'Goleada contundente', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 4;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 2, 2, 'Empate emocionante', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 5;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 1, 1, 'Reparto de puntos', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 6;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 0, 2, 'Victoria visitante', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 7;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 3, 0, 'Dominio total', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 8;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 1, 2, 'Sorpresa en el marcador', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 9;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 2, 0, 'Victoria sólida', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 10;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 1, 1, 'Partido parejo', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 11;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 0, 1, 'Defensa impenetrable', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 12;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 2, 3, 'Lluvia de goles', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 13;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 1, 0, 'Mínima diferencia', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 14;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 2, 2, 'Tablas en el marcador', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 15;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 0, 0, 'Pocas ocasiones', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 16;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 3, 1, 'Superioridad clara', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 17;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 1, 1, 'Final dramático', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 18;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 2, 0, 'Control del juego', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 19;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 3, 2, 'Espectáculo ofensivo', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 20;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 1, 0, 'Juego táctico', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 21;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 0, 0, 'Sin puntería', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 22;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 2, 1, 'Gran actuación individual', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 23;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 1, 1, 'Empate justo', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 24;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 4, 0, 'Paseo triunfal', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 25;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 1, 2, 'Remontada visitante', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 26;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 0, 1, 'Gol de tiro libre', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 27;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 2, 2, 'Intensidad máxima', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 28;
+INSERT INTO ksanchez.resultado (goles_local, goles_visitante, observaciones, id_partido)
+SELECT 3, 0, 'Efectividad pura', id_partido FROM ksanchez.partido WHERE id_partido = (SELECT min(id_partido) FROM ksanchez.partido) + 29;

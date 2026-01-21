@@ -1,0 +1,347 @@
+-- 5 
+SELECT
+    p.id_partido,
+    p.fecha,
+    p.hora,
+    e_local.nombre AS equipo_local,
+    e_visitante.nombre AS equipo_visitante,
+    p.estado_partido
+FROM
+    ksanchez.partido p
+LEFT JOIN
+    ksanchez.resultado r ON p.id_partido = r.id_partido
+JOIN
+    ksanchez.equipo e_local ON p.id_equipo_local = e_local.id_equipo
+JOIN
+    ksanchez.equipo e_visitante ON p.id_equipo_visitante = e_visitante.id_equipo
+WHERE
+    r.id_partido IS NULL
+    -- **Nota:** Si deseas auditar solo partidos que ya deberían haber finalizado,
+    -- puedes añadir la siguiente condición:
+    -- AND p.fecha < CURRENT_DATE
+ORDER BY
+    p.fecha, p.hora;
+
+
+
+
+
+
+
+
+
+  --  4) Eficiencia ofensiva y defensiva por equipo
+Enunciado:
+El área deportiva requiere evaluar a cada equipo por su promedio de goles a favor y en contra por partido jugado, además de la tasa de puntos por partido.
+
+    WITH
+-- 1. Calcular estadísticas de Goles y Puntos para el equipo LOCAL
+EstadisticasLocal AS (
+    SELECT
+        p.id_equipo_local AS id_equipo,
+        1 AS partidos_jugados,
+        r.goles_local AS goles_favor,
+        r.goles_visitante AS goles_contra,
+        CASE
+            WHEN r.goles_local > r.goles_visitante THEN 3 -- Victoria
+            WHEN r.goles_local = r.goles_visitante THEN 1 -- Empate
+            ELSE 0                                       -- Derrota
+        END AS puntos
+    FROM
+        ksanchez.partido p
+    JOIN
+        ksanchez.resultado r ON p.id_partido = r.id_partido
+),
+-- 2. Calcular estadísticas de Goles y Puntos para el equipo VISITANTE
+EstadisticasVisitante AS (
+    SELECT
+        p.id_equipo_visitante AS id_equipo,
+        1 AS partidos_jugados,
+        r.goles_visitante AS goles_favor,
+        r.goles_local AS goles_contra,
+        CASE
+            WHEN r.goles_visitante > r.goles_local THEN 3 -- Victoria
+            WHEN r.goles_visitante = r.goles_local THEN 1 -- Empate
+            ELSE 0                                       -- Derrota
+        END AS puntos
+    FROM
+        ksanchez.partido p
+    JOIN
+        ksanchez.resultado r ON p.id_partido = r.id_partido
+),
+-- 3. Unir todas las estadísticas (Local y Visitante) en una sola tabla
+EstadisticasTotales AS (
+    SELECT * FROM EstadisticasLocal
+    UNION ALL
+    SELECT * FROM EstadisticasVisitante
+)
+-- 4. Consulta final para calcular los promedios por equipo
+SELECT
+    e.nombre AS equipo,
+    SUM(et.partidos_jugados) AS total_partidos,
+    SUM(et.goles_favor) AS total_goles_favor,
+    SUM(et.goles_contra) AS total_goles_contra,
+    SUM(et.puntos) AS total_puntos,
+    -- Promedio de Goles a Favor (Eficiencia Ofensiva)
+    ROUND(CAST(SUM(et.goles_favor) AS NUMERIC) / SUM(et.partidos_jugados), 2) AS promedio_goles_favor,
+    -- Promedio de Goles en Contra (Eficiencia Defensiva)
+    ROUND(CAST(SUM(et.goles_contra) AS NUMERIC) / SUM(et.partidos_jugados), 2) AS promedio_goles_contra,
+    -- Tasa de Puntos por Partido
+    ROUND(CAST(SUM(et.puntos) AS NUMERIC) / SUM(et.partidos_jugados), 2) AS tasa_puntos_por_partido
+FROM
+    EstadisticasTotales et
+JOIN
+    ksanchez.equipo e ON et.id_equipo = e.id_equipo
+GROUP BY
+    e.nombre
+ORDER BY
+    tasa_puntos_por_partido DESC, promedio_goles_favor DESC;
+
+
+
+
+
+
+
+    --- 3 3) Uso del estadio: partidos jugados y promedio de goles por partido
+Enunciado:
+La gerencia de infraestructura desea medir el uso de los estadios: para cada estadio activo, muestra cuántos partidos se han jugado (con resultado) y el promedio de goles por partido.
+
+SELECT
+    'AUDITORIA_SIN_RESULTADO' AS reporte,
+    p.id_partido,
+    p.fecha,
+    p.hora,
+    e_local.nombre AS equipo_local,
+    e_visitante.nombre AS equipo_visitante,
+    p.estado_partido
+FROM
+    ksanchez.partido p
+LEFT JOIN
+    ksanchez.resultado r ON p.id_partido = r.id_partido
+JOIN
+    ksanchez.equipo e_local ON p.id_equipo_local = e_local.id_equipo
+JOIN
+    ksanchez.equipo e_visitante ON p.id_equipo_visitante = e_visitante.id_equipo
+WHERE
+    r.id_partido IS NULL
+ORDER BY
+    p.fecha, p.hora;
+
+-- ---------------------------------------------------------------------------------
+-- 2. EFICIENCIA OFENSIVA Y DEFENSIVA POR EQUIPO
+-- Enunciado: Promedio de goles a favor, en contra y tasa de puntos por partido.
+-- ---------------------------------------------------------------------------------
+WITH
+EstadisticasLocal AS (
+    SELECT
+        p.id_equipo_local AS id_equipo,
+        1 AS partidos_jugados,
+        r.goles_local AS goles_favor,
+        r.goles_visitante AS goles_contra,
+        CASE
+            WHEN r.goles_local > r.goles_visitante THEN 3
+            WHEN r.goles_local = r.goles_visitante THEN 1
+            ELSE 0
+        END AS puntos
+    FROM
+        ksanchez.partido p
+    JOIN
+        ksanchez.resultado r ON p.id_partido = r.id_partido
+),
+EstadisticasVisitante AS (
+    SELECT
+        p.id_equipo_visitante AS id_equipo,
+        1 AS partidos_jugados,
+        r.goles_visitante AS goles_favor,
+        r.goles_local AS goles_contra,
+        CASE
+            WHEN r.goles_visitante > r.goles_local THEN 3
+            WHEN r.goles_visitante = r.goles_local THEN 1
+            ELSE 0
+        END AS puntos
+    FROM
+        ksanchez.partido p
+    JOIN
+        ksanchez.resultado r ON p.id_partido = r.id_partido
+),
+EstadisticasTotales AS (
+    SELECT * FROM EstadisticasLocal
+    UNION ALL
+    SELECT * FROM EstadisticasVisitante
+)
+SELECT
+    'EFICIENCIA_EQUIPO' AS reporte,
+    e.nombre AS equipo,
+    SUM(et.partidos_jugados) AS total_partidos,
+    SUM(et.goles_favor) AS total_goles_favor,
+    SUM(et.goles_contra) AS total_goles_contra,
+    SUM(et.puntos) AS total_puntos,
+    ROUND(CAST(SUM(et.goles_favor) AS NUMERIC) / SUM(et.partidos_jugados), 2) AS promedio_goles_favor,
+    ROUND(CAST(SUM(et.goles_contra) AS NUMERIC) / SUM(et.partidos_jugados), 2) AS promedio_goles_contra,
+    ROUND(CAST(SUM(et.puntos) AS NUMERIC) / SUM(et.partidos_jugados), 2) AS tasa_puntos_por_partido
+FROM
+    EstadisticasTotales et
+JOIN
+    ksanchez.equipo e ON et.id_equipo = e.id_equipo
+GROUP BY
+    e.nombre
+ORDER BY
+    tasa_puntos_por_partido DESC, promedio_goles_favor DESC;
+
+-- ---------------------------------------------------------------------------------
+-- 3. USO DEL ESTADIO: PARTIDOS JUGADOS Y PROMEDIO DE GOLES
+-- Enunciado: Partidos jugados y promedio de goles por partido (corregida sin 'activo').
+-- ---------------------------------------------------------------------------------
+SELECT
+    'USO_ESTADIO' AS reporte,
+    es.nombre AS estadio,
+    COUNT(p.id_partido) AS partidos_jugados,
+    SUM(r.goles_local + r.goles_visitante) AS total_goles,
+    ROUND(CAST(SUM(r.goles_local + r.goles_visitante) AS NUMERIC) / COUNT(p.id_partido), 2) AS promedio_goles_por_partido
+FROM
+    ksanchez.estadio es
+JOIN
+    ksanchez.partido p ON es.id_estadio = p.id_estadio
+JOIN
+    ksanchez.resultado r ON p.id_partido = r.id_partido
+GROUP BY
+    es.nombre
+ORDER BY
+    partidos_jugados DESC, promedio_goles_por_partido DESC;
+
+
+
+
+
+
+
+
+--  2 ============================================================================
+-- AGENDA DEL DÍA: PARTIDOS PROGRAMADOS POR LIGA Y ESTADIO
+-- Enunciado: Muestra por liga los partidos con fecha = hoy, con equipos local/visitante,
+-- estadio y hora. Ordena por liga, estadio y hora.
+
+SELECT
+    l.nombre AS liga,
+    e_local.nombre AS equipo_local,
+    e_visitante.nombre AS equipo_visitante,
+    es.nombre AS estadio,
+    p.hora
+FROM
+    ksanchez.partido p
+JOIN
+    ksanchez.equipo e_local ON p.id_equipo_local = e_local.id_equipo
+JOIN
+    ksanchez.equipo e_visitante ON p.id_equipo_visitante = e_visitante.id_equipo
+JOIN
+    ksanchez.estadio es ON p.id_estadio = es.id_estadio
+JOIN
+    ksanchez.liga l ON e_local.id_liga = l.id_liga -- Asume que la liga del equipo local es la liga del partido
+WHERE
+    p.fecha = CURRENT_DATE -- Filtra por la fecha actual del sistema (PostgreSQL)
+ORDER BY
+    liga, estadio, p.hora;
+
+
+
+
+
+
+
+
+    ----1 1) Tabla de posiciones por liga (puntos, PJ, G/E/P, GF, GC, DG, ranking)
+Enunciado:
+Dirección de competencia quiere la tabla de posiciones por liga. Calcula por equipo: partidos jugados, ganados, empatados, perdidos, goles a favor y en contra, diferencia de gol y puntos (3 por victoria, 1 por empate). Ordena por puntos, diferencia de gol y goles a favor. Agrega un ranking por liga usando funciones de ventana.
+
+    WITH
+-- 1. Consolidar resultados de partidos (Local y Visitante)
+MatchResults AS (
+    -- Estadísticas para equipos LOCALES
+    SELECT
+        p.id_equipo_local AS id_equipo,
+        e_local.id_liga,
+        r.goles_local AS gf,
+        r.goles_visitante AS gc,
+        CASE WHEN r.goles_local > r.goles_visitante THEN 1 ELSE 0 END AS ganados,
+        CASE WHEN r.goles_local = r.goles_visitante THEN 1 ELSE 0 END AS empatados,
+        CASE WHEN r.goles_local < r.goles_visitante THEN 1 ELSE 0 END AS perdidos,
+        CASE
+            WHEN r.goles_local > r.goles_visitante THEN 3
+            WHEN r.goles_local = r.goles_visitante THEN 1
+            ELSE 0
+        END AS puntos
+    FROM
+        ksanchez.partido p
+    JOIN
+        ksanchez.resultado r ON p.id_partido = r.id_partido
+    JOIN
+        ksanchez.equipo e_local ON p.id_equipo_local = e_local.id_equipo
+
+    UNION ALL
+
+    -- Estadísticas para equipos VISITANTES
+    SELECT
+        p.id_equipo_visitante AS id_equipo,
+        e_visitante.id_liga,
+        r.goles_visitante AS gf,
+        r.goles_local AS gc,
+        CASE WHEN r.goles_visitante > r.goles_local THEN 1 ELSE 0 END AS ganados,
+        CASE WHEN r.goles_visitante = r.goles_local THEN 1 ELSE 0 END AS empatados,
+        CASE WHEN r.goles_visitante < r.goles_local THEN 1 ELSE 0 END AS perdidos,
+        CASE
+            WHEN r.goles_visitante > r.goles_local THEN 3
+            WHEN r.goles_visitante = r.goles_local THEN 1
+            ELSE 0
+        END AS puntos
+    FROM
+        ksanchez.partido p
+    JOIN
+        ksanchez.resultado r ON p.id_partido = r.id_partido
+    JOIN
+        ksanchez.equipo e_visitante ON p.id_equipo_visitante = e_visitante.id_equipo
+),
+-- 2. Agrupar estadísticas por equipo y liga
+TeamStats AS (
+    SELECT
+        mr.id_liga,
+        e.nombre AS equipo,
+        l.nombre AS liga,
+        COUNT(*) AS pj,
+        SUM(mr.ganados) AS ganados,
+        SUM(mr.empatados) AS empatados,
+        SUM(mr.perdidos) AS perdidos,
+        SUM(mr.gf) AS gf,
+        SUM(mr.gc) AS gc,
+        SUM(mr.gf) - SUM(mr.gc) AS dg,
+        SUM(mr.puntos) AS puntos
+    FROM
+        MatchResults mr
+    JOIN
+        ksanchez.equipo e ON mr.id_equipo = e.id_equipo
+    JOIN
+        ksanchez.liga l ON mr.id_liga = l.id_liga
+    GROUP BY
+        mr.id_liga, e.nombre, l.nombre
+)
+-- 3. Consulta final con Ranking (Función de Ventana)
+SELECT
+    ts.liga,
+    -- Aplicar la función de ventana RANK()
+    RANK() OVER (
+        PARTITION BY ts.liga
+        ORDER BY ts.puntos DESC, ts.dg DESC, ts.gf DESC
+    ) AS ranking,
+    ts.equipo,
+    ts.puntos,
+    ts.pj,
+    ts.ganados AS g,
+    ts.empatados AS e,
+    ts.perdidos AS p,
+    ts.gf,
+    ts.gc,
+    ts.dg
+FROM
+    TeamStats ts
+ORDER BY
+    ts.liga, ranking;

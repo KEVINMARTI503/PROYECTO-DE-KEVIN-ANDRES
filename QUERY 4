@@ -1,0 +1,68 @@
+--  4) Eficiencia ofensiva y defensiva por equipo
+Enunciado:
+El área deportiva requiere evaluar a cada equipo por su promedio de goles a favor y en contra por partido jugado, además de la tasa de puntos por partido.
+
+
+
+    WITH
+-- 1. Calcular estadísticas de Goles y Puntos para el equipo LOCAL
+EstadisticasLocal AS (
+    SELECT
+        p.id_equipo_local AS id_equipo,
+        1 AS partidos_jugados,
+        r.goles_local AS goles_favor,
+        r.goles_visitante AS goles_contra,
+        CASE
+            WHEN r.goles_local > r.goles_visitante THEN 3 -- Victoria
+            WHEN r.goles_local = r.goles_visitante THEN 1 -- Empate
+            ELSE 0                                       -- Derrota
+        END AS puntos
+    FROM
+        ksanchez.partido p
+    JOIN
+        ksanchez.resultado r ON p.id_partido = r.id_partido
+),
+-- 2. Calcular estadísticas de Goles y Puntos para el equipo VISITANTE
+EstadisticasVisitante AS (
+    SELECT
+        p.id_equipo_visitante AS id_equipo,
+        1 AS partidos_jugados,
+        r.goles_visitante AS goles_favor,
+        r.goles_local AS goles_contra,
+        CASE
+            WHEN r.goles_visitante > r.goles_local THEN 3 -- Victoria
+            WHEN r.goles_visitante = r.goles_local THEN 1 -- Empate
+            ELSE 0                                       -- Derrota
+        END AS puntos
+    FROM
+        ksanchez.partido p
+    JOIN
+        ksanchez.resultado r ON p.id_partido = r.id_partido
+),
+-- 3. Unir todas las estadísticas (Local y Visitante) en una sola tabla
+EstadisticasTotales AS (
+    SELECT * FROM EstadisticasLocal
+    UNION ALL
+    SELECT * FROM EstadisticasVisitante
+)
+-- 4. Consulta final para calcular los promedios por equipo
+SELECT
+    e.nombre AS equipo,
+    SUM(et.partidos_jugados) AS total_partidos,
+    SUM(et.goles_favor) AS total_goles_favor,
+    SUM(et.goles_contra) AS total_goles_contra,
+    SUM(et.puntos) AS total_puntos,
+    -- Promedio de Goles a Favor (Eficiencia Ofensiva)
+    ROUND(CAST(SUM(et.goles_favor) AS NUMERIC) / SUM(et.partidos_jugados), 2) AS promedio_goles_favor,
+    -- Promedio de Goles en Contra (Eficiencia Defensiva)
+    ROUND(CAST(SUM(et.goles_contra) AS NUMERIC) / SUM(et.partidos_jugados), 2) AS promedio_goles_contra,
+    -- Tasa de Puntos por Partido
+    ROUND(CAST(SUM(et.puntos) AS NUMERIC) / SUM(et.partidos_jugados), 2) AS tasa_puntos_por_partido
+FROM
+    EstadisticasTotales et
+JOIN
+    ksanchez.equipo e ON et.id_equipo = e.id_equipo
+GROUP BY
+    e.nombre
+ORDER BY
+    tasa_puntos_por_partido DESC, promedio_goles_favor DESC;

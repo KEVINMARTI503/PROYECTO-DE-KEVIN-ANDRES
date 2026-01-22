@@ -1,12 +1,4 @@
-  ----1 1) Tabla de posiciones por liga (puntos, PJ, G/E/P, GF, GC, DG, ranking)
-Enunciado:
-Dirección de competencia quiere la tabla de posiciones por liga. Calcula por equipo: partidos jugados, ganados, empatados, perdidos, goles a favor y en contra, diferencia de gol y puntos (3 por victoria, 1 por empate). Ordena por puntos, diferencia de gol y goles a favor. Agrega un ranking por liga usando funciones de ventana.
-
-
-
-
-
-    WITH
+ WITH
 -- 1. Consolidar resultados de partidos (Local y Visitante)
 MatchResults AS (
     -- Estadísticas para equipos LOCALES

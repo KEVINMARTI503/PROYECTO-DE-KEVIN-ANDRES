@@ -1,0 +1,113 @@
+   --- 3 3) Uso del estadio: partidos jugados y promedio de goles por partido
+Enunciado:
+La gerencia de infraestructura desea medir el uso de los estadios: para cada estadio activo, muestra cuántos partidos se han jugado (con resultado) y el promedio de goles por partido.
+
+
+
+
+SELECT
+    'AUDITORIA_SIN_RESULTADO' AS reporte,
+    p.id_partido,
+    p.fecha,
+    p.hora,
+    e_local.nombre AS equipo_local,
+    e_visitante.nombre AS equipo_visitante,
+    p.estado_partido
+FROM
+    ksanchez.partido p
+LEFT JOIN
+    ksanchez.resultado r ON p.id_partido = r.id_partido
+JOIN
+    ksanchez.equipo e_local ON p.id_equipo_local = e_local.id_equipo
+JOIN
+    ksanchez.equipo e_visitante ON p.id_equipo_visitante = e_visitante.id_equipo
+WHERE
+    r.id_partido IS NULL
+ORDER BY
+    p.fecha, p.hora;
+
+-- ---------------------------------------------------------------------------------
+-- 2. EFICIENCIA OFENSIVA Y DEFENSIVA POR EQUIPO
+-- Enunciado: Promedio de goles a favor, en contra y tasa de puntos por partido.
+-- ---------------------------------------------------------------------------------
+WITH
+EstadisticasLocal AS (
+    SELECT
+        p.id_equipo_local AS id_equipo,
+        1 AS partidos_jugados,
+        r.goles_local AS goles_favor,
+        r.goles_visitante AS goles_contra,
+        CASE
+            WHEN r.goles_local > r.goles_visitante THEN 3
+            WHEN r.goles_local = r.goles_visitante THEN 1
+            ELSE 0
+        END AS puntos
+    FROM
+        ksanchez.partido p
+    JOIN
+        ksanchez.resultado r ON p.id_partido = r.id_partido
+),
+EstadisticasVisitante AS (
+    SELECT
+        p.id_equipo_visitante AS id_equipo,
+        1 AS partidos_jugados,
+        r.goles_visitante AS goles_favor,
+        r.goles_local AS goles_contra,
+        CASE
+            WHEN r.goles_visitante > r.goles_local THEN 3
+            WHEN r.goles_visitante = r.goles_local THEN 1
+            ELSE 0
+        END AS puntos
+    FROM
+        ksanchez.partido p
+    JOIN
+        ksanchez.resultado r ON p.id_partido = r.id_partido
+),
+EstadisticasTotales AS (
+    SELECT * FROM EstadisticasLocal
+    UNION ALL
+    SELECT * FROM EstadisticasVisitante
+)
+SELECT
+    'EFICIENCIA_EQUIPO' AS reporte,
+    e.nombre AS equipo,
+    SUM(et.partidos_jugados) AS total_partidos,
+    SUM(et.goles_favor) AS total_goles_favor,
+    SUM(et.goles_contra) AS total_goles_contra,
+    SUM(et.puntos) AS total_puntos,
+    ROUND(CAST(SUM(et.goles_favor) AS NUMERIC) / SUM(et.partidos_jugados), 2) AS promedio_goles_favor,
+    ROUND(CAST(SUM(et.goles_contra) AS NUMERIC) / SUM(et.partidos_jugados), 2) AS promedio_goles_contra,
+    ROUND(CAST(SUM(et.puntos) AS NUMERIC) / SUM(et.partidos_jugados), 2) AS tasa_puntos_por_partido
+FROM
+    EstadisticasTotales et
+JOIN
+    ksanchez.equipo e ON et.id_equipo = e.id_equipo
+GROUP BY
+    e.nombre
+ORDER BY
+    tasa_puntos_por_partido DESC, promedio_goles_favor DESC;
+
+-- ---------------------------------------------------------------------------------
+-- 3. USO DEL ESTADIO: PARTIDOS JUGADOS Y PROMEDIO DE GOLES
+-- Enunciado: Partidos jugados y promedio de goles por partido (corregida sin 'activo').
+-- ---------------------------------------------------------------------------------
+SELECT
+    'USO_ESTADIO' AS reporte,
+    es.nombre AS estadio,
+    COUNT(p.id_partido) AS partidos_jugados,
+    SUM(r.goles_local + r.goles_visitante) AS total_goles,
+    ROUND(CAST(SUM(r.goles_local + r.goles_visitante) AS NUMERIC) / COUNT(p.id_partido), 2) AS promedio_goles_por_partido
+FROM
+    ksanchez.estadio es
+JOIN
+    ksanchez.partido p ON es.id_estadio = p.id_estadio
+JOIN
+    ksanchez.resultado r ON p.id_partido = r.id_partido
+GROUP BY
+    es.nombre
+ORDER BY
+    partidos_jugados DESC, promedio_goles_por_partido DESC;
+
+
+
+

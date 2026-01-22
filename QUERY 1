@@ -1,0 +1,99 @@
+  ----1 1) Tabla de posiciones por liga (puntos, PJ, G/E/P, GF, GC, DG, ranking)
+Enunciado:
+Dirección de competencia quiere la tabla de posiciones por liga. Calcula por equipo: partidos jugados, ganados, empatados, perdidos, goles a favor y en contra, diferencia de gol y puntos (3 por victoria, 1 por empate). Ordena por puntos, diferencia de gol y goles a favor. Agrega un ranking por liga usando funciones de ventana.
+
+
+
+
+
+    WITH
+-- 1. Consolidar resultados de partidos (Local y Visitante)
+MatchResults AS (
+    -- Estadísticas para equipos LOCALES
+    SELECT
+        p.id_equipo_local AS id_equipo,
+        e_local.id_liga,
+        r.goles_local AS gf,
+        r.goles_visitante AS gc,
+        CASE WHEN r.goles_local > r.goles_visitante THEN 1 ELSE 0 END AS ganados,
+        CASE WHEN r.goles_local = r.goles_visitante THEN 1 ELSE 0 END AS empatados,
+        CASE WHEN r.goles_local < r.goles_visitante THEN 1 ELSE 0 END AS perdidos,
+        CASE
+            WHEN r.goles_local > r.goles_visitante THEN 3
+            WHEN r.goles_local = r.goles_visitante THEN 1
+            ELSE 0
+        END AS puntos
+    FROM
+        ksanchez.partido p
+    JOIN
+        ksanchez.resultado r ON p.id_partido = r.id_partido
+    JOIN
+        ksanchez.equipo e_local ON p.id_equipo_local = e_local.id_equipo
+
+    UNION ALL
+
+    -- Estadísticas para equipos VISITANTES
+    SELECT
+        p.id_equipo_visitante AS id_equipo,
+        e_visitante.id_liga,
+        r.goles_visitante AS gf,
+        r.goles_local AS gc,
+        CASE WHEN r.goles_visitante > r.goles_local THEN 1 ELSE 0 END AS ganados,
+        CASE WHEN r.goles_visitante = r.goles_local THEN 1 ELSE 0 END AS empatados,
+        CASE WHEN r.goles_visitante < r.goles_local THEN 1 ELSE 0 END AS perdidos,
+        CASE
+            WHEN r.goles_visitante > r.goles_local THEN 3
+            WHEN r.goles_visitante = r.goles_local THEN 1
+            ELSE 0
+        END AS puntos
+    FROM
+        ksanchez.partido p
+    JOIN
+        ksanchez.resultado r ON p.id_partido = r.id_partido
+    JOIN
+        ksanchez.equipo e_visitante ON p.id_equipo_visitante = e_visitante.id_equipo
+),
+-- 2. Agrupar estadísticas por equipo y liga
+TeamStats AS (
+    SELECT
+        mr.id_liga,
+        e.nombre AS equipo,
+        l.nombre AS liga,
+        COUNT(*) AS pj,
+        SUM(mr.ganados) AS ganados,
+        SUM(mr.empatados) AS empatados,
+        SUM(mr.perdidos) AS perdidos,
+        SUM(mr.gf) AS gf,
+        SUM(mr.gc) AS gc,
+        SUM(mr.gf) - SUM(mr.gc) AS dg,
+        SUM(mr.puntos) AS puntos
+    FROM
+        MatchResults mr
+    JOIN
+        ksanchez.equipo e ON mr.id_equipo = e.id_equipo
+    JOIN
+        ksanchez.liga l ON mr.id_liga = l.id_liga
+    GROUP BY
+        mr.id_liga, e.nombre, l.nombre
+)
+-- 3. Consulta final con Ranking (Función de Ventana)
+SELECT
+    ts.liga,
+    -- Aplicar la función de ventana RANK()
+    RANK() OVER (
+        PARTITION BY ts.liga
+        ORDER BY ts.puntos DESC, ts.dg DESC, ts.gf DESC
+    ) AS ranking,
+    ts.equipo,
+    ts.puntos,
+    ts.pj,
+    ts.ganados AS g,
+    ts.empatados AS e,
+    ts.perdidos AS p,
+    ts.gf,
+    ts.gc,
+    ts.dg
+FROM
+    TeamStats ts
+ORDER BY
+    ts.liga, ranking;

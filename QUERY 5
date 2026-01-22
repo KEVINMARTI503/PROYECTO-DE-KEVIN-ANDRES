@@ -1,0 +1,23 @@
+-- 5 
+SELECT
+    p.id_partido,
+    p.fecha,
+    p.hora,
+    e_local.nombre AS equipo_local,
+    e_visitante.nombre AS equipo_visitante,
+    p.estado_partido
+FROM
+    ksanchez.partido p
+LEFT JOIN
+    ksanchez.resultado r ON p.id_partido = r.id_partido
+JOIN
+    ksanchez.equipo e_local ON p.id_equipo_local = e_local.id_equipo
+JOIN
+    ksanchez.equipo e_visitante ON p.id_equipo_visitante = e_visitante.id_equipo
+WHERE
+    r.id_partido IS NULL
+    -- **Nota:** Si deseas auditar solo partidos que ya deberían haber finalizado,
+    -- puedes añadir la siguiente condición:
+    -- AND p.fecha < CURRENT_DATE
+ORDER BY
+    p.fecha, p.hora;
